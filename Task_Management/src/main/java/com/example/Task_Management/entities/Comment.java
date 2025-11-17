@@ -32,12 +32,19 @@ public class Comment {
     private Task task;
 
     public CommentDTO getCommentDTo(){
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setId(id);
-        commentDTO.setContent(content);
-        commentDTO.setCreatedAt(createdAt);
-        commentDTO.setTaskId(task.getId());
-        commentDTO.setUserId(user.getId());
-        return commentDTO;
+    CommentDTO commentDTO = new CommentDTO();
+    commentDTO.setId(id);
+    commentDTO.setContent(content);
+    commentDTO.setCreatedAt(createdAt);
+    commentDTO.setTaskId(task.getId());
+    commentDTO.setUserId(user.getId());
+
+    // Set the username to show in frontend
+    if(user != null){
+        commentDTO.setPostedBy(user.getName()); 
     }
+
+    return commentDTO;
+}
+
 }
