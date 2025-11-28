@@ -23,11 +23,11 @@ The system is built using Spring Boot, secured with **JWT authentication**, and 
    - Identify key features for admins and employees
    - Create audience personas (Admin, Employee)
 2. **Visual Identity**
-![alt text](image-3.png)
+   ![alt text](imgs/image-3.png)
 3. **Main Designs**
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
+   ![alt text](imgs/image.png)
+   ![alt text](imgs/image-1.png)
+   ![alt text](imgs/image-2.png)
 4. **Complementary Products**
 5. **Review & Finalization**
 6. **Final Presentation**
