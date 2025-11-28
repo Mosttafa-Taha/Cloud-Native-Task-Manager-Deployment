@@ -5,7 +5,7 @@
 A web-based task management system designed to help organizations manage and track employee tasks efficiently.
 Admins can create, assign, and monitor tasks, while employees can view and update their progress in real-time.
 
-The system is built using Spring Boot, secured with JWT authentication, and deployed using Docker, Nginx, and Kubernetes, with Prometheus & Grafana for system monitoring and performance tracking.
+The system is built using Spring Boot, secured with **JWT authentication**, and deployed using **Docker**, **Nginx**, and **Kubernetes**, with **Prometheus & Grafana** for system monitoring and performance tracking.
 
 ### Team Members (pentaRae)
 
