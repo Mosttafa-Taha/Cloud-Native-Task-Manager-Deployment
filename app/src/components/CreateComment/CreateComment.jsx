@@ -1,75 +1,56 @@
-
-
 import axios from 'axios';
 import { useFormik } from 'formik';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import AdminProfileImg from "../../images/Admin-Profile-Vector-PNG-Clipart.png";
 
 export default function CreateComment() {
     const { id } = useParams();
 
-    const [task, settask] = useState({})
-    const [allComments, setallComments] = useState(null)
-    let userComment = {
-        comment: ""
-    };
+    const [task, setTask] = useState({});
+    const [allComments, setAllComments] = useState([]);
 
-
+    // Fetch task details
     async function getData() {
         try {
-
-            const { data } = await axios.get(`/api/employee/oneTask/${id}`, {
+            const { data } = await axios.get(`/api/admin/oneTask/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('tokenJwt')}`
                 },
                 withCredentials: true
-            })
+            });
+
+            // Format date
             const formattedDate = new Date(data.dueDate).toISOString().split('T')[0];
             data.dueDate = formattedDate;
-            settask(data)
-            console.log("data in comment", data)
-            getAllComment();
 
-
-
+            setTask(data);
+            await getAllComments(); // Ensure comments are loaded after task
         } catch (error) {
-            console.log(error);
-
+            console.error("Error fetching task:", error);
         }
     }
 
-    useEffect(function () {
-        getData();
-        getAllComment();
-    }, [])
-
-    async function createComment(values) {
-        console.log(values);
-        let content = values.comment;
-
+    // Fetch all comments
+    async function getAllComments() {
         try {
-            const { data } = await axios.post(`/api/admin/createComment/${id}`,
-                null,
-                {
-                    params: { content },
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('tokenJwt')}`
-                    },
-                    withCredentials: true
-                }
-            );
-            formikObj.resetForm();
-            getAllComment();
-          
+            const { data } = await axios.get(`/api/admin/comments/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('tokenJwt')}`
+                },
+                withCredentials: true
+            });
+            setAllComments(data);
         } catch (error) {
-            console.error('Error:', error);
-
+            console.error("Error fetching comments:", error);
         }
     }
 
-    async function getAllComment() {
+    // Create a new comment
+    async function createComment(values, { resetForm }) {
         try {
-            const { data } = await axios.get(`/api/admin/comments/${id}`,
+            await axios.post(`/api/admin/createComment/${id}`,
+                { content: values.comment },
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('tokenJwt')}`
@@ -77,112 +58,104 @@ export default function CreateComment() {
                     withCredentials: true
                 }
             );
-            console.log(data, "co");
-            setallComments(data);
+
+            resetForm();       // Clear the form
+            await getAllComments(); // Refresh comments
         } catch (error) {
-            console.error('Error:', error);
+            console.error("Error creating comment:", error);
         }
     }
 
-    const formikObj = useFormik({
-        initialValues: userComment,
-
+    // Formik setup
+    const formik = useFormik({
+        initialValues: { comment: "" },
         onSubmit: createComment,
-        validate: function (values) {
-            const errors = {}
-            console.log(values);
-            if (!values.comment) {
-                errors.comment = "comment is required"
-            }
-            return errors
+        validate: values => {
+            const errors = {};
+            if (!values.comment) errors.comment = "Comment is required";
+            return errors;
         }
-
     });
 
-    return <>
+    // Load task & comments on mount
+    useEffect(() => {
+        getData();
+    }, []);
+
+    return (
         <div className="container mt-5">
+
+            {/* Task Details */}
             <div className="row">
-                <div className="col-md-9   ">
-                    <div className="my_task shadow   bg-white py-5 px-4 rounded-3 ">
-                        <h2 className='text-primary'>{task?.title}</h2>
+                <div className="col-md-9">
+                    <div className="my_task shadow bg-white py-5 px-4 rounded-3">
+                        <h2 className="text-primary">{task?.title}</h2>
+                        <p className="text-muted">{task?.description}</p>
 
-                        <p className="text-muted" >{task?.description} </p>
-
-                        <div className="task_content   border-2 border-top   border-gray p-2 d-flex justify-content-between  align-items-center">
-                            <div className="Task_content_left  ">
-                                <p className='mt-1'>dealine : <span className='fw-bold'>  {new Date(task?.dueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}    </span></p>
-                                <p className='mt-1'>Priority : <span className='fw-bold'>{task?.priority}</span></p>
+                        <div className="task_content border-2 border-top border-gray p-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <p>Deadline: <span className="fw-bold">{new Date(task?.dueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span></p>
+                                <p>Priority: <span className="fw-bold">{task?.priority}</span></p>
                             </div>
-
-                            <div className="Task_content_right ">
-                                <p className='mt-1'>Employee : <span className='fw-bold'>{task?.employeeName}</span></p>
-                                <p className='mt-1'>status : <span className='fw-bold'>{task?.taskStatus}</span></p>
+                            <div>
+                                <p>Employee: <span className="fw-bold">{task?.employeeName}</span></p>
+                                <p>Status: <span className="fw-bold">{task?.taskStatus}</span></p>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
-
-
+            {/* Create Comment Form */}
             <div className="row mt-5">
                 <div className="col-md-9">
-                    <div className="comment  shadow   bg-white py-5 px-4 rounded-3 ">
-                        <h2> Create comment : </h2>
-                        <div className=" shadow-sm p-4">
-                            <form onSubmit={formikObj.handleSubmit} >
-
-                                <label htmlFor="comment">comment : </label>
-                                <textarea onBlur={formikObj.handleBlur} onChange={formikObj.handleChange} value={formikObj.values.comment} id='comment' type="text" className='form-control mb-3' />
-                                {formikObj.errors?.comment && formikObj.touched.comment ? <div className="alert alert-danger"> {formikObj.errors?.comment}</div> : ""}
-
+                    <div className="comment shadow bg-white py-5 px-4 rounded-3">
+                        <h2>Create Comment:</h2>
+                        <div className="shadow-sm p-4">
+                            <form onSubmit={formik.handleSubmit}>
+                                <label htmlFor="comment">Comment:</label>
+                                <textarea
+                                    id="comment"
+                                    name="comment"
+                                    className="form-control mb-3"
+                                    value={formik.values.comment}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                />
+                                {formik.errors.comment && formik.touched.comment && (
+                                    <div className="alert alert-danger">{formik.errors.comment}</div>
+                                )}
                                 <div className="d-flex justify-content-center align-items-center">
-                                    <button type="submit" className='btn btn-outline-primary' >Publish Comment  </button>
+                                    <button type="submit" className="btn btn-outline-primary">Publish Comment</button>
                                 </div>
-
-
-
-
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Comments List */}
             <div className="row mt-4 gy-3">
-
-                {allComments?.map((comment) =>
-                    <div className="col-md-9   ">
-                        <div className="my_task shadow   bg-white py-5 px-4 rounded-3  ">
-                            <div className="admin_img w-25 d-flex  align-items-center">
-                                <img className=" rounded-circle" src={require("../../images/Admin-Profile-Vector-PNG-Clipart.png")} alt="" />
-                                <h2 className="ms-3">Admin</h2>
-                            </div>
-                           
-                            <p className="text-muted ms-5 ps-2"> {new Date(comment.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-
-                            <p>{comment.content} ?</p>
-
-
-
-                        </div>
-
-                    </div>)}
-
-
+                {allComments.map(comment => (
+    <div className="col-md-9" key={comment.id}>
+        <div className="my_task shadow bg-white py-5 px-4 rounded-3">
+            <div className="admin_img w-25 d-flex align-items-center">
+                <img 
+                    className="rounded-circle" 
+                    src={comment.user?.avatar || AdminProfileImg} 
+                    alt={comment.user?.name || "User"} 
+                    style={{ width: "50px", height: "50px" }}
+                />
+                <h2 className="ms-3">{comment.postedBy}</h2>
             </div>
-
-
+            <p className="text-muted ms-5 ps-2">
+                {new Date(comment.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
+            <p className="ms-5 ps-2">{comment.content}</p>
         </div>
-
-
-
-
-
-
-
-
-    </>
+    </div>
+))}
+            </div>
+        </div>
+    );
 }
-
